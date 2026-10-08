@@ -217,7 +217,7 @@ create policy "Permitir inserção e atualização de compras"
             }`}
           >
             <Mail className="w-3.5 h-3.5" />
-            <span>Login sem Senha</span>
+            <span>Entrar (Email & Senha)</span>
           </button>
 
           <button

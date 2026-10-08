@@ -1,5 +1,17 @@
-import React from 'react';
-import { Zap, ArrowRight, Key, Lock } from 'lucide-react';
+import React, { useState } from 'react';
+import { 
+  Zap, 
+  ArrowRight, 
+  Key, 
+  Lock, 
+  Mail, 
+  Eye, 
+  EyeOff, 
+  AlertCircle, 
+  RefreshCw, 
+  CheckCircle2 
+} from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 interface LandingPageViewProps {
   onEnterApp: () => void;
@@ -12,6 +24,42 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
   onOpenAuthModal,
   isAccessActive = false 
 }) => {
+  const { loginWithPassword } = useAuth();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [loginError, setLoginError] = useState('');
+  const [loginSuccess, setLoginSuccess] = useState(false);
+
+  const handleDirectLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoginError('');
+    setIsLoading(true);
+
+    try {
+      await loginWithPassword(email, password);
+      setLoginSuccess(true);
+      onEnterApp();
+    } catch (err: unknown) {
+      const error = err as Error;
+      setLoginError(error.message || 'E-mail ou senha incorretos.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const scrollToLogin = () => {
+    const el = document.getElementById('login-section');
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth' });
+      const input = el.querySelector('input');
+      if (input) input.focus();
+    } else if (onOpenAuthModal) {
+      onOpenAuthModal();
+    }
+  };
+
   const happenings = [
     'Aluno novo',
     'Aluno evoluindo',
@@ -70,15 +118,13 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
             </button>
           ) : (
             <>
-              {onOpenAuthModal && (
-                <button
-                  onClick={onOpenAuthModal}
-                  className="px-3.5 py-2 rounded-xl bg-white hover:bg-slate-100 text-slate-800 border border-slate-300 font-bold text-xs font-display tracking-wider transition-all shadow-2xs flex items-center gap-1.5 cursor-pointer"
-                >
-                  <Key className="w-3.5 h-3.5 text-slate-600" />
-                  <span>Já comprei (Entrar)</span>
-                </button>
-              )}
+              <button
+                onClick={scrollToLogin}
+                className="px-3.5 py-2 rounded-xl bg-white hover:bg-slate-100 text-slate-800 border border-slate-300 font-bold text-xs font-display tracking-wider transition-all shadow-2xs flex items-center gap-1.5 cursor-pointer"
+              >
+                <Key className="w-3.5 h-3.5 text-slate-600" />
+                <span>Já comprei (Entrar)</span>
+              </button>
 
               <a
                 href="https://cakto.com.br"
@@ -121,36 +167,141 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
           </p>
         </div>
 
-        <div className="pt-2 space-y-3">
+        {/* ÁREA DE ACESSO DIRETO COM E-MAIL E SENHA */}
+        <div id="login-section" className="pt-2 max-w-md mx-auto w-full">
           {isAccessActive ? (
-            <button
-              onClick={onEnterApp}
-              className="w-full sm:w-auto px-8 py-5 rounded-2xl bg-slate-950 hover:bg-slate-800 text-white font-black text-xl sm:text-2xl font-display tracking-wider transition-all shadow-xl hover:scale-[1.02] cursor-pointer inline-flex items-center justify-center gap-3"
-            >
-              <span>ACESSAR MEU CORNER</span>
-              <ArrowRight className="w-6 h-6 stroke-[3]" />
-            </button>
-          ) : (
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 max-w-lg mx-auto">
+            <div className="space-y-3">
               <button
                 onClick={onEnterApp}
-                className="w-full sm:w-auto flex-1 px-6 py-4 rounded-2xl bg-slate-950 hover:bg-slate-800 text-white font-black text-sm sm:text-base font-display tracking-wider transition-all shadow-xl cursor-pointer inline-flex items-center justify-center gap-2"
+                className="w-full py-5 px-8 rounded-2xl bg-slate-950 hover:bg-slate-800 text-white font-black text-xl font-display tracking-wider transition-all shadow-xl hover:scale-[1.02] cursor-pointer inline-flex items-center justify-center gap-3"
               >
-                <Key className="w-4 h-4 text-slate-300" />
-                <span>JÁ COMPREI (ENTRAR)</span>
+                <span>ACESSAR MEU CORNER</span>
+                <ArrowRight className="w-6 h-6 stroke-[3]" />
               </button>
+              <div className="flex items-center justify-center gap-1.5 text-xs text-emerald-600 font-mono font-bold">
+                <CheckCircle2 className="w-4 h-4" />
+                <span>Acesso liberado e ativo</span>
+              </div>
+            </div>
+          ) : (
+            <div className="bg-white rounded-3xl p-6 sm:p-7 border-2 border-slate-900 shadow-xl text-left space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div className="space-y-0.5">
+                  <div className="inline-flex items-center gap-1.5 text-[11px] font-mono font-black uppercase text-slate-500 tracking-wider">
+                    <Lock className="w-3.5 h-3.5 text-slate-900" />
+                    <span>Área do Aluno</span>
+                  </div>
+                  <h3 className="font-display text-xl font-black text-slate-950 tracking-tight">
+                    Entrar com E-mail e Senha
+                  </h3>
+                </div>
+                <span className="px-2.5 py-1 rounded-full bg-slate-100 text-[10px] font-mono font-bold text-slate-700 uppercase">
+                  99 Templates
+                </span>
+              </div>
 
-              <a
-                href="https://cakto.com.br"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-full sm:w-auto flex-1 px-6 py-4 rounded-2xl bg-white hover:bg-slate-100 text-slate-950 border-2 border-slate-950 font-black text-sm sm:text-base font-display tracking-wider transition-all shadow-xs cursor-pointer inline-flex items-center justify-center gap-2"
-              >
-                <span>COMPRAR NA CAKTO 🥋</span>
-              </a>
+              {loginError && (
+                <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-xl flex items-start gap-2.5 text-xs text-rose-800 animate-in fade-in">
+                  <AlertCircle className="w-4 h-4 shrink-0 text-rose-600 mt-0.5" />
+                  <div className="space-y-1">
+                    <p className="font-bold text-rose-950">Acesso não liberado</p>
+                    <p className="leading-relaxed">{loginError}</p>
+                  </div>
+                </div>
+              )}
+
+              {loginSuccess && (
+                <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center gap-2 text-xs text-emerald-800">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span className="font-bold">Acesso aprovado! Carregando aplicativo...</span>
+                </div>
+              )}
+
+              <form onSubmit={handleDirectLogin} className="space-y-3.5">
+                <div className="space-y-1">
+                  <label className="text-[11px] font-bold font-mono uppercase text-slate-600 block">
+                    Seu E-mail cadastrado:
+                  </label>
+                  <div className="relative">
+                    <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="email"
+                      required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="ex: cmjfighter@gmail.com"
+                      className="w-full bg-slate-50 border border-slate-300 focus:border-slate-950 focus:bg-white rounded-xl pl-10 pr-3.5 py-3 text-sm text-slate-900 outline-none font-medium transition-all placeholder:text-slate-400"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[11px] font-bold font-mono uppercase text-slate-600 block">
+                    Sua Senha:
+                  </label>
+                  <div className="relative">
+                    <Key className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      required
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="•••••••••"
+                      className="w-full bg-slate-50 border border-slate-300 focus:border-slate-950 focus:bg-white rounded-xl pl-10 pr-10 py-3 text-sm text-slate-900 outline-none font-medium transition-all placeholder:text-slate-400"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 cursor-pointer p-1"
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={isLoading || !email || !password}
+                  className="w-full py-3.5 px-4 rounded-xl bg-slate-950 hover:bg-slate-800 disabled:opacity-50 text-white font-black text-sm font-display tracking-wider transition-all flex items-center justify-center gap-2 shadow-lg cursor-pointer"
+                >
+                  {isLoading ? (
+                    <>
+                      <RefreshCw className="w-4 h-4 animate-spin text-slate-300" />
+                      <span>VERIFICANDO ACESSO...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>ENTRAR NO CORNER 🥋</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </>
+                  )}
+                </button>
+              </form>
+
+              <div className="pt-2 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs">
+                {onOpenAuthModal && (
+                  <button
+                    type="button"
+                    onClick={onOpenAuthModal}
+                    className="text-slate-500 hover:text-slate-950 underline font-medium cursor-pointer"
+                  >
+                    Entrar com Link no E-mail
+                  </button>
+                )}
+
+                <a
+                  href="https://cakto.com.br"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-slate-950 font-bold hover:underline inline-flex items-center gap-1 cursor-pointer"
+                >
+                  <span>Comprar na Cakto 🥋</span>
+                </a>
+              </div>
             </div>
           )}
-          <div className="flex items-center justify-center gap-1.5 text-xs text-slate-500 font-mono">
+
+          <div className="flex items-center justify-center gap-1.5 text-xs text-slate-500 font-mono mt-3">
             <Lock className="w-3.5 h-3.5 text-slate-400" />
             <span>Conteúdo exclusivo liberado automaticamente após compra na Cakto.</span>
           </div>

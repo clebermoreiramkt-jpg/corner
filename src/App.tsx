@@ -34,10 +34,12 @@ export function App() {
     situation: string;
   } | null>(null);
 
-  // Trava de Acesso Rigorosa: sem compra ativa na Cakto, mantém na Landing Page
+  // Trava de Acesso Rigorosa: sem compra ativa na Cakto, mantém na Landing Page. Com acesso ativo, entra no App.
   useEffect(() => {
     if (!isAccessActive) {
       setView('landing');
+    } else {
+      setView('app');
     }
   }, [isAccessActive]);
 
