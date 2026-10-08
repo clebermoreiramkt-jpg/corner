@@ -10,6 +10,7 @@ interface AuthContextType {
   openAuthModal: () => void;
   closeAuthModal: () => void;
   sendMagicLink: (email: string) => Promise<{ success: boolean; message: string; isDemo?: boolean }>;
+  loginWithPassword: (email: string, password: string) => Promise<void>;
   loginInstantDemo: (email: string) => Promise<void>;
   logout: () => Promise<void>;
   refreshAccess: () => Promise<void>;
@@ -59,6 +60,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return await authService.sendMagicLink(email);
   };
 
+  const loginWithPassword = async (email: string, password: string) => {
+    const access = await authService.signInWithPassword(email, password);
+    setUserAccess(access);
+    setIsAuthModalOpen(false);
+  };
+
   const loginInstantDemo = async (email: string) => {
     const access = await authService.mockSignIn(email);
     setUserAccess(access);
@@ -91,6 +98,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         openAuthModal,
         closeAuthModal,
         sendMagicLink,
+        loginWithPassword,
         loginInstantDemo,
         logout,
         refreshAccess,

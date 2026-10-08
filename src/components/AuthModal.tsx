@@ -30,10 +30,12 @@ interface AuthModalProps {
 }
 
 export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
-  const { sendMagicLink, loginInstantDemo } = useAuth();
+  const { sendMagicLink, loginWithPassword, loginInstantDemo } = useAuth();
 
   const [activeTab, setActiveTab] = useState<'login' | 'config' | 'webhook'>('login');
+  const [loginMode, setLoginMode] = useState<'password' | 'magic'>('password');
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [sentSuccess, setSentSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
@@ -73,6 +75,23 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
     } catch (err: unknown) {
       const error = err as Error;
       setErrorMessage(error.message || 'Erro ao enviar link de acesso.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handlePasswordLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrorMessage('');
+    setInfoMessage('');
+    setIsLoading(true);
+
+    try {
+      await loginWithPassword(email, password);
+      onClose();
+    } catch (err: unknown) {
+      const error = err as Error;
+      setErrorMessage(error.message || 'Erro ao efetuar login com senha.');
     } finally {
       setIsLoading(false);
     }
@@ -227,18 +246,54 @@ create policy "Permitir inserção e atualização de compras"
         </div>
 
         <div className="p-5 sm:p-6 overflow-y-auto space-y-5">
-          {/* TAB 1: LOGIN COM MAGIC LINK */}
+          {/* TAB 1: LOGIN COM SENHA OU MAGIC LINK */}
           {activeTab === 'login' && (
             <div className="space-y-4">
-              {!sentSuccess ? (
-                <form onSubmit={handleSendLink} className="space-y-4">
+              {/* Seletor de Modo: Senha vs Link Mágico */}
+              <div className="flex rounded-xl bg-slate-100 p-1 text-xs font-bold">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setLoginMode('password');
+                    setErrorMessage('');
+                  }}
+                  className={`flex-1 py-1.5 px-3 rounded-lg transition-all cursor-pointer ${
+                    loginMode === 'password'
+                      ? 'bg-white text-slate-950 shadow-2xs font-black'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  Entrar com Senha
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setLoginMode('magic');
+                    setErrorMessage('');
+                  }}
+                  className={`flex-1 py-1.5 px-3 rounded-lg transition-all cursor-pointer ${
+                    loginMode === 'magic'
+                      ? 'bg-white text-slate-950 shadow-2xs font-black'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  Link no E-mail (Sem Senha)
+                </button>
+              </div>
+
+              {!sentSuccess || loginMode === 'password' ? (
+                <form
+                  onSubmit={loginMode === 'password' ? handlePasswordLogin : handleSendLink}
+                  className="space-y-4"
+                >
                   <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-1.5">
                     <span className="font-display font-black text-sm text-slate-950 block">
-                      🥋 Como funciona o acesso?
+                      🥋 {loginMode === 'password' ? 'Acesso com E-mail e Senha' : 'Acesso sem Senha via E-mail'}
                     </span>
                     <p className="text-xs text-slate-600 leading-relaxed">
-                      Digite abaixo o <strong>mesmo e-mail</strong> utilizado na compra do CORNER pela plataforma <strong>Cakto</strong>. 
-                      Vamos te enviar um link seguro para você entrar direto, sem precisar memorizar senhas.
+                      {loginMode === 'password'
+                        ? 'Digite o seu e-mail cadastrado e sua senha para entrar imediatamente no CORNER.'
+                        : 'Digite o mesmo e-mail da compra na Cakto. Você receberá um link seguro para entrar com 1 clique.'}
                     </p>
                   </div>
 
@@ -248,7 +303,7 @@ create policy "Permitir inserção e atualização de compras"
                         <AlertCircle className="w-4 h-4 shrink-0 text-rose-600 mt-0.5" />
                         <div className="space-y-1">
                           <p className="font-bold text-rose-950 font-display">
-                            Acesso bloqueado: Compra não confirmada
+                            Acesso não liberado
                           </p>
                           <p className="leading-relaxed text-slate-700">
                             {errorMessage}
@@ -281,37 +336,63 @@ create policy "Permitir inserção e atualização de compras"
                     </div>
                   )}
 
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-mono uppercase tracking-wider text-slate-500 font-bold block">
-                      Seu E-mail da Compra (Cakto):
-                    </label>
-                    <div className="relative">
-                      <Mail className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-                      <input
-                        type="email"
-                        required
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        placeholder="exemplo@tatame.com"
-                        className="w-full bg-slate-50 border border-slate-300 focus:border-slate-950 focus:bg-white rounded-xl pl-10 pr-3.5 py-3 text-sm text-slate-900 outline-none font-medium transition-all"
-                      />
+                  <div className="space-y-3">
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-mono uppercase tracking-wider text-slate-500 font-bold block">
+                        Seu E-mail da Compra:
+                      </label>
+                      <div className="relative">
+                        <Mail className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                        <input
+                          type="email"
+                          required
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          placeholder="exemplo@tatame.com"
+                          className="w-full bg-slate-50 border border-slate-300 focus:border-slate-950 focus:bg-white rounded-xl pl-10 pr-3.5 py-3 text-sm text-slate-900 outline-none font-medium transition-all"
+                        />
+                      </div>
                     </div>
+
+                    {loginMode === 'password' && (
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-mono uppercase tracking-wider text-slate-500 font-bold block">
+                          Sua Senha:
+                        </label>
+                        <div className="relative">
+                          <Key className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                          <input
+                            type="password"
+                            required
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            placeholder="•••••••••"
+                            className="w-full bg-slate-50 border border-slate-300 focus:border-slate-950 focus:bg-white rounded-xl pl-10 pr-3.5 py-3 text-sm text-slate-900 outline-none font-medium transition-all"
+                          />
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   <button
                     type="submit"
-                    disabled={isLoading || !email}
+                    disabled={isLoading || !email || (loginMode === 'password' && !password)}
                     className="w-full py-3.5 px-4 rounded-xl bg-slate-950 hover:bg-slate-800 disabled:opacity-50 text-white font-extrabold text-sm font-display tracking-wider transition-all flex items-center justify-center gap-2 shadow-xs cursor-pointer"
                   >
                     {isLoading ? (
                       <>
                         <RefreshCw className="w-4 h-4 animate-spin text-slate-300" />
-                        <span>ENVIANDO LINK MÁGICO...</span>
+                        <span>VERIFICANDO ACESSO...</span>
+                      </>
+                    ) : loginMode === 'password' ? (
+                      <>
+                        <Sparkles className="w-4 h-4 text-slate-300" />
+                        <span>ENTRAR NO CORNER 🥋</span>
                       </>
                     ) : (
                       <>
-                        <Sparkles className="w-4 h-4 text-slate-300" />
-                        <span>ENVIAR LINK MÁGICO DE ACESSO</span>
+                        <Mail className="w-4 h-4 text-slate-300" />
+                        <span>ENVIAR LINK DE ACESSO</span>
                       </>
                     )}
                   </button>

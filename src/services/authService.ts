@@ -318,7 +318,53 @@ export const authService = {
     return {};
   },
 
+  // 6. Login com E-mail e Senha (via Supabase Auth)
+  async signInWithPassword(email: string, password: string): Promise<UserAccessData> {
+    const cleanEmail = email.trim().toLowerCase();
+    if (!cleanEmail || !password) {
+      throw new Error('Informe seu e-mail e sua senha.');
+    }
+
+    // 1. Tentar login no Supabase se configurado
+    if (isSupabaseConfigured && supabase) {
+      const { error } = await supabase.auth.signInWithPassword({
+        email: cleanEmail,
+        password: password,
+      });
+
+      if (error) {
+        if (error.message.includes('Invalid login credentials')) {
+          throw new Error('E-mail ou senha incorretos.');
+        }
+        throw new Error(error.message);
+      }
+
+      // Se autenticou no Supabase, confirma o status de compra na tabela purchases
+      const access = await this.checkAccessStatus(cleanEmail);
+      if (access.status !== 'active') {
+        throw new Error('Login efetuado, mas nenhuma compra aprovada na Cakto foi encontrada para este usuário.');
+      }
+      this.saveCurrentSession(access);
+      return access;
+    }
+
+    // Fallback caso Supabase não esteja conectado
+    const access = await this.checkAccessStatus(cleanEmail);
+    if (access.status !== 'active') {
+      throw new Error('Nenhuma compra aprovada na Cakto foi encontrada para este e-mail.');
+    }
+    this.saveCurrentSession(access);
+    return access;
+  },
+
   async logout(): Promise<void> {
+    if (isSupabaseConfigured && supabase) {
+      try {
+        await supabase.auth.signOut();
+      } catch {
+        // fallback
+      }
+    }
     if (isFirebaseConfigured && auth) {
       try {
         await signOut(auth);
