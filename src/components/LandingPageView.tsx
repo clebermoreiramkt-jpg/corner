@@ -117,24 +117,13 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
               <ArrowRight className="w-4 h-4" />
             </button>
           ) : (
-            <>
-              <button
-                onClick={scrollToLogin}
-                className="px-3.5 py-2 rounded-xl bg-white hover:bg-neutral-50 text-black border border-neutral-300 hover:border-black font-bold text-xs font-display tracking-wider transition-all flex items-center gap-1.5 cursor-pointer"
-              >
-                <Key className="w-3.5 h-3.5 text-black" />
-                <span>Já comprei (Entrar)</span>
-              </button>
-
-              <a
-                href="https://cakto.com.br"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-3.5 py-2 rounded-xl bg-black hover:bg-neutral-800 text-white font-extrabold text-xs font-display tracking-wider transition-all cursor-pointer inline-flex items-center gap-1.5"
-              >
-                <span>COMPRAR NA CAKTO 🥋</span>
-              </a>
-            </>
+            <button
+              onClick={scrollToLogin}
+              className="px-4 py-2 rounded-xl bg-black hover:bg-neutral-800 text-white font-extrabold text-xs font-display tracking-wider transition-all flex items-center gap-1.5 cursor-pointer"
+            >
+              <Key className="w-3.5 h-3.5 text-white" />
+              <span>ENTRAR NO CORNER</span>
+            </button>
           )}
         </div>
       </header>
@@ -289,21 +278,20 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
                   </button>
                 )}
 
-                <a
-                  href="https://cakto.com.br"
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <button
+                  type="button"
+                  onClick={onOpenAuthModal}
                   className="text-black font-bold hover:underline inline-flex items-center gap-1 cursor-pointer"
                 >
-                  <span>Comprar na Cakto 🥋</span>
-                </a>
+                  <span>Painel do Admin</span>
+                </button>
               </div>
             </div>
           )}
 
           <div className="flex items-center justify-center gap-1.5 text-xs text-neutral-500 font-mono mt-3">
             <Lock className="w-3.5 h-3.5 text-neutral-400" />
-            <span>Conteúdo exclusivo liberado automaticamente após compra na Cakto.</span>
+            <span>Acesso exclusivo para professores e academias cadastrados pela administração.</span>
           </div>
         </div>
 
@@ -501,21 +489,13 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
               ACESSAR MEU CORNER AGORA
             </button>
           ) : (
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 max-w-md mx-auto">
+            <div className="flex justify-center max-w-sm mx-auto">
               <button
-                onClick={onEnterApp}
-                className="w-full sm:w-auto flex-1 px-8 py-4 rounded-2xl bg-black hover:bg-neutral-800 text-white font-extrabold text-base font-display tracking-wider transition-all cursor-pointer"
+                onClick={scrollToLogin}
+                className="w-full px-8 py-4 rounded-2xl bg-black hover:bg-neutral-800 text-white font-extrabold text-base font-display tracking-wider transition-all cursor-pointer shadow-xs"
               >
-                ENTRAR COM E-MAIL (CAKTO)
+                ENTRAR COM E-MAIL E SENHA 🥋
               </button>
-              <a
-                href="https://cakto.com.br"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-full sm:w-auto flex-1 px-8 py-4 rounded-2xl bg-white hover:bg-neutral-50 text-black border-2 border-black font-extrabold text-base font-display tracking-wider transition-all cursor-pointer text-center"
-              >
-                GARANTIR ACESSO 🥋
-              </a>
             </div>
           )}
         </div>

@@ -3,7 +3,7 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 export interface SupabaseCustomConfig {
   supabaseUrl: string;
   supabaseKey: string; // anon key ou secret key
-  caktoWebhookSecret: string;
+  caktoWebhookSecret?: string;
   caktoCheckoutUrl?: string;
 }
 

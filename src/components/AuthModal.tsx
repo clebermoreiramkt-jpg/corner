@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   X, 
   Mail, 
@@ -9,10 +9,13 @@ import {
   Layers, 
   Copy, 
   Check, 
-  ExternalLink,
-  ShieldCheck,
-  RefreshCw,
-  Zap
+  UserPlus, 
+  Users, 
+  RefreshCw, 
+  Trash2, 
+  Lock, 
+  Unlock, 
+  MessageCircle 
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { isFirebaseConfigured } from '../services/firebaseConfig';
@@ -22,17 +25,31 @@ import {
   isSupabaseConfigured,
   type SupabaseCustomConfig
 } from '../services/supabaseConfig';
-import { authService } from '../services/authService';
+import { adminService, type RegisteredUser } from '../services/adminService';
 
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
+  initialTab?: 'login' | 'admin' | 'config';
 }
 
-export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
+const MODALITY_OPTIONS = [
+  'Muay Thai',
+  'Jiu-Jitsu',
+  'Boxe',
+  'Judô',
+  'Karatê',
+  'MMA',
+  'Taekwondo',
+  'Capoeira',
+  'Kickboxing',
+  'Outra',
+];
+
+export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialTab = 'login' }) => {
   const { sendMagicLink, loginWithPassword, loginInstantDemo } = useAuth();
 
-  const [activeTab, setActiveTab] = useState<'login' | 'config' | 'webhook'>('login');
+  const [activeTab, setActiveTab] = useState<'login' | 'admin' | 'config'>(initialTab);
   const [loginMode, setLoginMode] = useState<'password' | 'magic'>('password');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -42,22 +59,40 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
   const [infoMessage, setInfoMessage] = useState('');
   const [isDemoMode, setIsDemoMode] = useState(!isFirebaseConfigured && !isSupabaseConfigured);
 
+  // Admin Manual Registration State
+  const [adminUsers, setAdminUsers] = useState<RegisteredUser[]>([]);
+  const [regName, setRegName] = useState('');
+  const [regEmail, setRegEmail] = useState('');
+  const [regPassword, setRegPassword] = useState('123456789');
+  const [regModality, setRegModality] = useState('Muay Thai');
+  const [regPhone, setRegPhone] = useState('');
+  const [regLoading, setRegLoading] = useState(false);
+  const [regSuccessUser, setRegSuccessUser] = useState<RegisteredUser | null>(null);
+  const [copiedMsg, setCopiedMsg] = useState(false);
+
   // Supabase Config state
   const [supaForm, setSupaForm] = useState<SupabaseCustomConfig>(getStoredSupabaseConfig());
   const [copiedSql, setCopiedSql] = useState(false);
   const [configSavedSuccess, setConfigSavedSuccess] = useState(false);
 
-  // Webhook Simulator state
-  const [simEmail, setSimEmail] = useState('');
-  const [simName, setSimName] = useState('Professor Teste');
-  const [simStatus, setSimStatus] = useState<'active' | 'refunded'>('active');
-  const [simResult, setSimResult] = useState<string | null>(null);
-  const [copiedWebhookUrl, setCopiedWebhookUrl] = useState(false);
+  useEffect(() => {
+    if (isOpen && activeTab === 'admin') {
+      loadAdminUsers();
+    }
+  }, [isOpen, activeTab]);
 
   if (!isOpen) return null;
 
   const currentOrigin = typeof window !== 'undefined' ? window.location.origin : 'https://corner.app';
-  const defaultWebhookUrl = `${currentOrigin}/api/webhook/cakto`;
+
+  const loadAdminUsers = async () => {
+    try {
+      const list = await adminService.listUsers();
+      setAdminUsers(list);
+    } catch (err) {
+      console.warn('Erro ao carregar lista de usuários:', err);
+    }
+  };
 
   const handleSendLink = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -110,26 +145,82 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
     }
   };
 
-  const sqlSetupCode = `-- 🥋 CORNER: TABELA DE COMPRAS NO SUPABASE
+  const handleRegisterUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setRegLoading(true);
+    setErrorMessage('');
+
+    try {
+      const created = await adminService.registerUser({
+        name: regName,
+        email: regEmail,
+        password: regPassword,
+        modality: regModality,
+        phone: regPhone,
+      });
+
+      setRegSuccessUser(created);
+      setRegName('');
+      setRegEmail('');
+      setRegPassword('123456789');
+      setRegPhone('');
+      await loadAdminUsers();
+    } catch (err: unknown) {
+      const error = err as Error;
+      setErrorMessage(error.message || 'Erro ao cadastrar usuário.');
+    } finally {
+      setRegLoading(false);
+    }
+  };
+
+  const handleToggleStatus = async (user: RegisteredUser) => {
+    const nextStatus = user.status === 'active' ? 'blocked' : 'active';
+    try {
+      await adminService.toggleUserStatus(user.email, nextStatus);
+      await loadAdminUsers();
+    } catch (err: unknown) {
+      const error = err as Error;
+      alert(error.message);
+    }
+  };
+
+  const handleDeleteUser = async (userEmail: string) => {
+    if (!confirm(`Tem certeza que deseja remover o acesso de ${userEmail}?`)) return;
+    try {
+      await adminService.deleteUser(userEmail);
+      await loadAdminUsers();
+    } catch (err: unknown) {
+      const error = err as Error;
+      alert(error.message);
+    }
+  };
+
+  const handleCopyWelcomeMessage = (user: RegisteredUser) => {
+    const text = adminService.generateWelcomeMessage(user, currentOrigin);
+    navigator.clipboard.writeText(text);
+    setCopiedMsg(true);
+    setTimeout(() => setCopiedMsg(false), 2500);
+  };
+
+  const sqlSetupCode = `-- 🥋 CORNER: TABELA DE ACESSOS E PROFESSORES NO SUPABASE
 create table if not exists public.purchases (
   email text primary key,
   name text,
   phone text,
   status text default 'active',
-  plan text default 'Acesso Vitalício CORNER',
-  cakto_order_id text,
+  plan text default 'Acesso Liberado pelo Admin',
   created_at timestamp with time zone default timezone('utc'::text, now())
 );
 
 alter table public.purchases enable row level security;
 
-drop policy if exists "Permitir consulta de compras no CORNER" on public.purchases;
-create policy "Permitir consulta de compras no CORNER"
+drop policy if exists "Permitir consulta de acessos no CORNER" on public.purchases;
+create policy "Permitir consulta de acessos no CORNER"
   on public.purchases for select
   using (true);
 
-drop policy if exists "Permitir inserção e atualização de compras" on public.purchases;
-create policy "Permitir inserção e atualização de compras"
+drop policy if exists "Permitir inserção e atualização de acessos" on public.purchases;
+create policy "Permitir inserção e atualização de acessos"
   on public.purchases for all
   using (true)
   with check (true);`;
@@ -147,41 +238,10 @@ create policy "Permitir inserção e atualização de compras"
     setTimeout(() => setConfigSavedSuccess(false), 2000);
   };
 
-  const handleSimulateWebhook = async () => {
-    if (!simEmail.trim()) {
-      alert('Informe um e-mail para simular a compra da Cakto.');
-      return;
-    }
-
-    try {
-      await authService.recordCaktoPurchase({
-        email: simEmail,
-        name: simName,
-        status: simStatus,
-        plan: 'Acesso Vitalício CORNER',
-        caktoOrderId: `CAKTO-${Date.now().toString().slice(-6)}`,
-      });
-
-      setSimResult(
-        simStatus === 'active'
-          ? `✅ Compra Aprovada na Cakto para ${simEmail}! Acesso liberado.`
-          : `⚠️ Estorno/Cancelamento processado para ${simEmail}. Acesso revogado.`
-      );
-    } catch {
-      setSimResult('Erro ao simular webhook.');
-    }
-  };
-
-  const handleCopyWebhookUrl = () => {
-    navigator.clipboard.writeText(defaultWebhookUrl);
-    setCopiedWebhookUrl(true);
-    setTimeout(() => setCopiedWebhookUrl(false), 2000);
-  };
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs overflow-y-auto animate-in fade-in duration-200">
       <div 
-        className="relative w-full max-w-xl bg-white border border-neutral-200 rounded-2xl shadow-2xl overflow-hidden my-auto max-h-[92vh] flex flex-col text-left"
+        className="relative w-full max-w-2xl bg-white border border-neutral-200 rounded-2xl shadow-2xl overflow-hidden my-auto max-h-[92vh] flex flex-col text-left"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -190,10 +250,14 @@ create policy "Permitir inserção e atualização de compras"
             <img src="/logo-black.png" alt="CORNER" className="h-7 w-auto object-contain" />
             <div className="border-l border-neutral-200 pl-3">
               <h2 className="font-display text-lg sm:text-xl font-black text-black leading-tight">
-                {activeTab === 'login' ? 'Acesso do Professor' : activeTab === 'config' ? 'Configuração Firebase' : 'Webhook Cakto'}
+                {activeTab === 'login' ? 'Acesso do Professor' : activeTab === 'admin' ? 'Cadastro Manual de Alunos & Professores' : 'Configuração do Banco de Dados'}
               </h2>
               <p className="text-xs text-neutral-500">
-                {activeTab === 'login' ? 'Entrada com senha ou Magic Link' : 'Integração e Automação de Pagamentos'}
+                {activeTab === 'login' 
+                  ? 'Entrada com e-mail e senha cadastrados' 
+                  : activeTab === 'admin'
+                  ? 'Painel Administrativo exclusivo para liberação de acessos'
+                  : 'Conexão e credenciais do Supabase'}
               </p>
             </div>
           </div>
@@ -209,7 +273,10 @@ create policy "Permitir inserção e atualização de compras"
         {/* Navigation Tabs */}
         <div className="flex items-center gap-1 p-2 bg-neutral-100 border-b border-neutral-200 text-xs font-bold">
           <button
-            onClick={() => setActiveTab('login')}
+            onClick={() => {
+              setActiveTab('login');
+              setErrorMessage('');
+            }}
             className={`flex-1 py-2 px-3 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
               activeTab === 'login'
                 ? 'bg-black text-white shadow-xs'
@@ -217,23 +284,30 @@ create policy "Permitir inserção e atualização de compras"
             }`}
           >
             <Mail className="w-3.5 h-3.5" />
-            <span>Entrar (Email & Senha)</span>
+            <span>Entrar</span>
           </button>
 
           <button
-            onClick={() => setActiveTab('webhook')}
+            onClick={() => {
+              setActiveTab('admin');
+              setErrorMessage('');
+              loadAdminUsers();
+            }}
             className={`flex-1 py-2 px-3 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-              activeTab === 'webhook'
+              activeTab === 'admin'
                 ? 'bg-black text-white shadow-xs'
                 : 'text-neutral-600 hover:text-black'
             }`}
           >
-            <Zap className="w-3.5 h-3.5" />
-            <span>Webhook Cakto</span>
+            <UserPlus className="w-3.5 h-3.5" />
+            <span>Cadastrar Usuário (Admin)</span>
           </button>
 
           <button
-            onClick={() => setActiveTab('config')}
+            onClick={() => {
+              setActiveTab('config');
+              setErrorMessage('');
+            }}
             className={`flex-1 py-2 px-3 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
               activeTab === 'config'
                 ? 'bg-black text-white shadow-xs'
@@ -241,7 +315,7 @@ create policy "Permitir inserção e atualização de compras"
             }`}
           >
             <Key className="w-3.5 h-3.5" />
-            <span>Supabase & Cakto</span>
+            <span>Banco Supabase</span>
           </button>
         </div>
 
@@ -249,7 +323,6 @@ create policy "Permitir inserção e atualização de compras"
           {/* TAB 1: LOGIN COM SENHA OU MAGIC LINK */}
           {activeTab === 'login' && (
             <div className="space-y-4">
-              {/* Seletor de Modo: Senha vs Link Mágico */}
               <div className="flex rounded-xl bg-neutral-100 p-1 text-xs font-bold">
                 <button
                   type="button"
@@ -292,13 +365,13 @@ create policy "Permitir inserção e atualização de compras"
                     </span>
                     <p className="text-xs text-neutral-600 leading-relaxed">
                       {loginMode === 'password'
-                        ? 'Digite o seu e-mail cadastrado e sua senha para entrar imediatamente no CORNER.'
-                        : 'Digite o mesmo e-mail da compra na Cakto. Você receberá um link seguro para entrar com 1 clique.'}
+                        ? 'Digite o seu e-mail e senha cadastrados pela administração para acessar os 99 Templates.'
+                        : 'Digite seu e-mail cadastrado. Você receberá um link seguro para entrar com 1 clique.'}
                     </p>
                   </div>
 
                   {errorMessage && (
-                    <div className="p-4 rounded-xl bg-neutral-50 border-2 border-black text-black text-xs space-y-2.5 animate-in fade-in duration-200">
+                    <div className="p-4 rounded-xl bg-neutral-50 border-2 border-black text-black text-xs space-y-2 animate-in fade-in duration-200">
                       <div className="flex items-start gap-2.5">
                         <AlertCircle className="w-4 h-4 shrink-0 text-black mt-0.5" />
                         <div className="space-y-1">
@@ -310,36 +383,13 @@ create policy "Permitir inserção e atualização de compras"
                           </p>
                         </div>
                       </div>
-
-                      <div className="pt-1 flex flex-col sm:flex-row gap-2">
-                        <a
-                          href={supaForm.caktoCheckoutUrl || 'https://cakto.com.br'}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex-1 py-2 px-3 rounded-xl bg-black hover:bg-neutral-800 text-white font-bold text-xs font-display tracking-wider flex items-center justify-center gap-1.5 text-center transition-colors"
-                        >
-                          <span>Comprar Acesso na Cakto 🥋</span>
-                          <ExternalLink className="w-3 h-3" />
-                        </a>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setSimEmail(email);
-                            setActiveTab('webhook');
-                          }}
-                          className="py-2 px-3 rounded-xl bg-white hover:bg-neutral-100 text-black border border-neutral-300 font-bold text-xs flex items-center justify-center gap-1 cursor-pointer transition-colors"
-                        >
-                          <Zap className="w-3 h-3" />
-                          <span>Simular no Webhook</span>
-                        </button>
-                      </div>
                     </div>
                   )}
 
                   <div className="space-y-3">
                     <div className="space-y-1.5">
                       <label className="text-xs font-mono uppercase tracking-wider text-neutral-500 font-bold block">
-                        Seu E-mail da Compra:
+                        Seu E-mail Cadastrado:
                       </label>
                       <div className="relative">
                         <Mail className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-400" />
@@ -384,33 +434,18 @@ create policy "Permitir inserção e atualização de compras"
                         <RefreshCw className="w-4 h-4 animate-spin text-neutral-300" />
                         <span>VERIFICANDO ACESSO...</span>
                       </>
-                    ) : loginMode === 'password' ? (
+                    ) : (
                       <>
                         <Sparkles className="w-4 h-4 text-white" />
                         <span>ENTRAR NO CORNER 🥋</span>
                       </>
-                    ) : (
-                      <>
-                        <Mail className="w-4 h-4 text-white" />
-                        <span>ENVIAR LINK DE ACESSO</span>
-                      </>
                     )}
                   </button>
 
-                  {/* Cakto Checkout Referral Banner */}
-                  <div className="pt-2 text-center">
-                    <span className="text-xs text-neutral-500 block mb-1">
-                      Ainda não comprou o CORNER?
+                  <div className="p-3 rounded-xl bg-neutral-50 border border-neutral-200 text-center">
+                    <span className="text-xs text-neutral-600 block">
+                      Ainda não tem acesso cadastrado? Fale com o administrador para registrar seu login.
                     </span>
-                    <a
-                      href={supaForm.caktoCheckoutUrl || 'https://cakto.com.br'}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 text-xs text-black font-bold hover:underline"
-                    >
-                      <span>Garantir acesso aos 99 Templates na Cakto</span>
-                      <ExternalLink className="w-3.5 h-3.5" />
-                    </a>
                   </div>
                 </form>
               ) : (
@@ -436,14 +471,13 @@ create policy "Permitir inserção e atualização de compras"
                   )}
 
                   <div className="pt-2 space-y-2">
-                    {/* Botão de Atalho para Teste Imediato */}
                     {isDemoMode && (
                       <button
                         onClick={handleInstantDemoLogin}
                         className="w-full py-3 px-4 rounded-xl bg-black hover:bg-neutral-800 text-white font-bold text-xs tracking-wider font-display flex items-center justify-center gap-1.5 cursor-pointer shadow-xs transition-colors"
                       >
-                        <Zap className="w-4 h-4 fill-white" />
-                        <span>ENTRAR AGORA COM ESTE E-MAIL (MODO TESTE)</span>
+                        <Sparkles className="w-4 h-4 fill-white" />
+                        <span>ENTRAR AGORA COM ESTE E-MAIL (MODO DIRETO)</span>
                       </button>
                     )}
 
@@ -459,106 +493,249 @@ create policy "Permitir inserção e atualização de compras"
             </div>
           )}
 
-          {/* TAB 2: WEBHOOK CAKTO */}
-          {activeTab === 'webhook' && (
-            <div className="space-y-4">
-              <div className="p-4 rounded-xl bg-neutral-50 border border-neutral-200 space-y-2">
+          {/* TAB 2: CADASTRO MANUAL (ADMIN) */}
+          {activeTab === 'admin' && (
+            <div className="space-y-6">
+              <div className="p-4 rounded-xl bg-neutral-50 border border-neutral-200 space-y-1.5">
                 <div className="flex items-center gap-2">
                   <span className="font-mono text-xs font-bold px-2 py-0.5 rounded bg-black text-white">
-                    CAKTO WEBHOOK
+                    PAINEL ADMIN
                   </span>
                   <span className="text-xs font-bold text-black font-display">
-                    Como conectar com a Cakto
+                    Liberação Manual de Acessos
                   </span>
                 </div>
                 <p className="text-xs text-neutral-600 leading-relaxed">
-                  Quando o aluno compra na Cakto (via PIX, Cartão ou Boleto), a Cakto avisa o CORNER instantaneamente através deste Webhook para liberar o e-mail no Firestore.
+                  Cadastre novos professores e academias diretamente. Eles poderão entrar imediatamente com o e-mail e a senha informados abaixo.
                 </p>
               </div>
 
-              <div>
-                <label className="text-xs font-mono uppercase tracking-wider text-neutral-500 font-bold block mb-1">
-                  URL DO SEU WEBHOOK (COLE NA CAKTO):
-                </label>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="text"
-                    readOnly
-                    value={defaultWebhookUrl}
-                    className="flex-1 bg-white border border-neutral-300 rounded-xl px-3 py-2 text-xs text-neutral-800 font-mono select-all outline-none"
-                  />
-                  <button
-                    onClick={handleCopyWebhookUrl}
-                    className="px-3 py-2 rounded-xl bg-black hover:bg-neutral-800 text-white text-xs font-bold flex items-center gap-1 shrink-0 cursor-pointer transition-colors"
-                  >
-                    {copiedWebhookUrl ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                    <span>{copiedWebhookUrl ? 'Copiado!' : 'Copiar'}</span>
-                  </button>
-                </div>
-              </div>
-
-              {/* SIMULADOR DE COBRANÇA CAKTO */}
-              <div className="p-4 rounded-xl bg-white border border-neutral-200 space-y-3">
-                <span className="font-display font-black text-sm text-black flex items-center gap-1.5">
-                  <ShieldCheck className="w-4 h-4 text-black" />
-                  Simulador de Compra Cakto (Teste Local)
+              {/* Formulário de Registro Manual */}
+              <form onSubmit={handleRegisterUser} className="p-4 rounded-xl border border-neutral-300 space-y-3.5 bg-white">
+                <span className="text-xs font-display font-black text-black uppercase tracking-wider block">
+                  Novo Cadastro de Professor:
                 </span>
-                <p className="text-xs text-neutral-500">
-                  Simule uma cobrança aprovada para testar o cadastro no Firestore e a liberação do Magic Link:
-                </p>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  <input
-                    type="email"
-                    value={simEmail}
-                    onChange={(e) => setSimEmail(e.target.value)}
-                    placeholder="E-mail do comprador na Cakto..."
-                    className="text-xs bg-white border border-neutral-300 focus:border-black rounded-xl px-3 py-2 text-black outline-none"
-                  />
-                  <input
-                    type="text"
-                    value={simName}
-                    onChange={(e) => setSimName(e.target.value)}
-                    placeholder="Nome do professor..."
-                    className="text-xs bg-white border border-neutral-300 focus:border-black rounded-xl px-3 py-2 text-black outline-none"
-                  />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-mono uppercase font-bold text-neutral-700 block">
+                      Nome do Professor / Academia:
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={regName}
+                      onChange={(e) => setRegName(e.target.value)}
+                      placeholder="Ex: Prof. Silva / Team Luta"
+                      className="w-full bg-white border border-neutral-300 focus:border-black rounded-lg px-3 py-2 text-xs text-black outline-none font-medium"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-mono uppercase font-bold text-neutral-700 block">
+                      E-mail de Acesso:
+                    </label>
+                    <input
+                      type="email"
+                      required
+                      value={regEmail}
+                      onChange={(e) => setRegEmail(e.target.value)}
+                      placeholder="professor@tatame.com"
+                      className="w-full bg-white border border-neutral-300 focus:border-black rounded-lg px-3 py-2 text-xs text-black outline-none font-medium"
+                    />
+                  </div>
                 </div>
 
-                <div className="flex items-center gap-2">
-                  <select
-                    value={simStatus}
-                    onChange={(e) => setSimStatus(e.target.value as 'active' | 'refunded')}
-                    className="text-xs bg-white border border-neutral-300 focus:border-black rounded-xl px-3 py-2 text-black outline-none cursor-pointer"
-                  >
-                    <option value="active">Compra Aprovada (Liberar Acesso)</option>
-                    <option value="refunded">Reembolso / Cancelamento (Bloquear)</option>
-                  </select>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-mono uppercase font-bold text-neutral-700 block">
+                      Senha de Acesso:
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={regPassword}
+                      onChange={(e) => setRegPassword(e.target.value)}
+                      placeholder="123456789"
+                      className="w-full bg-white border border-neutral-300 focus:border-black rounded-lg px-3 py-2 text-xs text-black outline-none font-mono"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-mono uppercase font-bold text-neutral-700 block">
+                      Modalidade:
+                    </label>
+                    <select
+                      value={regModality}
+                      onChange={(e) => setRegModality(e.target.value)}
+                      className="w-full bg-white border border-neutral-300 focus:border-black rounded-lg px-3 py-2 text-xs text-black outline-none font-medium cursor-pointer"
+                    >
+                      {MODALITY_OPTIONS.map((m) => (
+                        <option key={m} value={m}>{m}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-mono uppercase font-bold text-neutral-700 block">
+                      WhatsApp (Opcional):
+                    </label>
+                    <input
+                      type="text"
+                      value={regPhone}
+                      onChange={(e) => setRegPhone(e.target.value)}
+                      placeholder="(11) 99999-9999"
+                      className="w-full bg-white border border-neutral-300 focus:border-black rounded-lg px-3 py-2 text-xs text-black outline-none font-medium"
+                    />
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={regLoading || !regName || !regEmail}
+                  className="w-full py-2.5 px-4 rounded-xl bg-black hover:bg-neutral-800 disabled:opacity-40 text-white font-extrabold text-xs font-display tracking-wider flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
+                >
+                  {regLoading ? (
+                    <>
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                      <span>CADASTRANDO...</span>
+                    </>
+                  ) : (
+                    <>
+                      <UserPlus className="w-3.5 h-3.5" />
+                      <span>CADASTRAR E LIBERAR ACESSO 🥋</span>
+                    </>
+                  )}
+                </button>
+              </form>
+
+              {/* Mensagem de sucesso após cadastro */}
+              {regSuccessUser && (
+                <div className="p-4 rounded-xl bg-neutral-50 border-2 border-black space-y-3 animate-in fade-in duration-200">
+                  <div className="flex items-center justify-between">
+                    <span className="font-display font-black text-sm text-black flex items-center gap-1.5">
+                      <CheckCircle2 className="w-4 h-4 text-black" />
+                      Acesso criado para {regSuccessUser.name}!
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setRegSuccessUser(null)}
+                      className="text-neutral-400 hover:text-black"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  <div className="text-xs text-neutral-800 space-y-1 bg-white p-3 rounded-lg border border-neutral-200 font-mono">
+                    <p><strong>E-mail:</strong> {regSuccessUser.email}</p>
+                    <p><strong>Senha:</strong> {regSuccessUser.password}</p>
+                    <p><strong>Modalidade:</strong> {regSuccessUser.modality}</p>
+                  </div>
 
                   <button
-                    onClick={handleSimulateWebhook}
-                    className="flex-1 py-2 px-3 rounded-xl bg-black hover:bg-neutral-800 text-white text-xs font-bold transition-all cursor-pointer shadow-xs"
+                    type="button"
+                    onClick={() => handleCopyWelcomeMessage(regSuccessUser)}
+                    className="w-full py-2 px-3 rounded-lg bg-black hover:bg-neutral-800 text-white text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer"
                   >
-                    Disparar Simulação
+                    {copiedMsg ? <Check className="w-3.5 h-3.5 text-white" /> : <MessageCircle className="w-3.5 h-3.5" />}
+                    <span>{copiedMsg ? 'Mensagem de WhatsApp Copiada!' : 'Copiar Texto Pronto para WhatsApp'}</span>
+                  </button>
+                </div>
+              )}
+
+              {/* Lista de Usuários Cadastrados */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-mono uppercase tracking-wider text-neutral-500 font-bold flex items-center gap-1.5">
+                    <Users className="w-3.5 h-3.5" />
+                    Professores Cadastrados ({adminUsers.length}):
+                  </span>
+                  <button
+                    type="button"
+                    onClick={loadAdminUsers}
+                    className="text-[11px] text-neutral-600 hover:text-black font-semibold flex items-center gap-1 cursor-pointer"
+                  >
+                    <RefreshCw className="w-3 h-3" />
+                    Atualizar Lista
                   </button>
                 </div>
 
-                {simResult && (
-                  <div className="p-2.5 rounded-xl bg-neutral-100 border border-neutral-200 text-xs font-medium text-black">
-                    {simResult}
-                  </div>
-                )}
+                <div className="space-y-2 max-h-60 overflow-y-auto">
+                  {adminUsers.map((user) => (
+                    <div
+                      key={user.email}
+                      className="p-3 rounded-xl border border-neutral-200 bg-white hover:border-neutral-300 transition-colors flex items-center justify-between gap-3 text-xs"
+                    >
+                      <div className="space-y-0.5">
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-black font-display">
+                            {user.name}
+                          </span>
+                          <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded font-semibold ${
+                            user.status === 'active' 
+                              ? 'bg-neutral-100 text-black border border-neutral-300' 
+                              : 'bg-neutral-200 text-neutral-500 line-through'
+                          }`}>
+                            {user.status === 'active' ? 'Ativo' : 'Bloqueado'}
+                          </span>
+                          {user.role === 'admin' && (
+                            <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-black text-white font-bold">
+                              ADMIN
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-[11px] text-neutral-500 font-mono">
+                          {user.email} • {user.modality}
+                        </p>
+                      </div>
+
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => handleCopyWelcomeMessage(user)}
+                          title="Copiar mensagem para WhatsApp"
+                          className="p-1.5 rounded-lg border border-neutral-200 text-neutral-600 hover:text-black hover:border-black cursor-pointer transition-colors"
+                        >
+                          <Copy className="w-3.5 h-3.5" />
+                        </button>
+
+                        {user.role !== 'admin' && (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => handleToggleStatus(user)}
+                              title={user.status === 'active' ? 'Bloquear Acesso' : 'Desbloquear Acesso'}
+                              className="p-1.5 rounded-lg border border-neutral-200 text-neutral-600 hover:text-black hover:border-black cursor-pointer transition-colors"
+                            >
+                              {user.status === 'active' ? <Lock className="w-3.5 h-3.5" /> : <Unlock className="w-3.5 h-3.5" />}
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteUser(user.email)}
+                              title="Excluir Usuário"
+                              className="p-1.5 rounded-lg border border-neutral-200 text-neutral-400 hover:text-rose-600 hover:border-rose-300 cursor-pointer transition-colors"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           )}
 
-          {/* TAB 3: CONFIGURAÇÃO SUPABASE & CAKTO */}
+          {/* TAB 3: CONFIGURAÇÃO SUPABASE */}
           {activeTab === 'config' && (
             <form onSubmit={handleSaveConfig} className="space-y-4">
               <div className="p-4 rounded-xl bg-neutral-50 border border-neutral-200 space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="font-display font-black text-xs text-black flex items-center gap-1.5">
                     <Layers className="w-4 h-4 text-black" />
-                    Banco de Dados Supabase & Cakto
+                    Banco de Dados Supabase
                   </span>
                   {isSupabaseConfigured ? (
                     <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-neutral-900 text-white">
@@ -571,7 +748,7 @@ create policy "Permitir inserção e atualização de compras"
                   )}
                 </div>
                 <p className="text-xs text-neutral-600 leading-relaxed">
-                  Suas chaves da Cakto e do Supabase já estão salvas abaixo. Basta colar a <strong>URL do seu Projeto Supabase</strong> e salvar!
+                  Os cadastros de professores são salvos diretamente no seu banco de dados Supabase na tabela <code>purchases</code>.
                 </p>
               </div>
 
@@ -579,7 +756,7 @@ create policy "Permitir inserção e atualização de compras"
               <div className="p-3.5 rounded-xl bg-white border border-neutral-200 flex items-center justify-between gap-3 shadow-xs">
                 <div className="space-y-0.5">
                   <span className="text-xs font-bold text-black block">
-                    Criar tabela de compras no Supabase:
+                    Criar tabela de usuários no Supabase:
                   </span>
                   <span className="text-[11px] text-neutral-500 block">
                     Vá no Supabase &gt; SQL Editor &gt; Cole e clique em Run
@@ -621,32 +798,6 @@ create policy "Permitir inserção e atualização de compras"
                     value={supaForm.supabaseKey}
                     onChange={(e) => setSupaForm({ ...supaForm, supabaseKey: e.target.value })}
                     placeholder="sb_secret_..."
-                    className="w-full bg-white border border-neutral-300 focus:border-black rounded-xl px-3 py-2.5 text-black font-mono text-xs outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-[11px] font-mono uppercase font-bold text-neutral-700 block mb-1">
-                    3. Chave Secreta de Webhook Cakto:
-                  </label>
-                  <input
-                    type="text"
-                    value={supaForm.caktoWebhookSecret}
-                    onChange={(e) => setSupaForm({ ...supaForm, caktoWebhookSecret: e.target.value })}
-                    placeholder="10251533-..."
-                    className="w-full bg-white border border-neutral-300 focus:border-black rounded-xl px-3 py-2.5 text-black font-mono text-xs outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-[11px] font-mono uppercase font-bold text-neutral-700 block mb-1">
-                    4. Link de Checkout da Cakto (Onde o aluno compra):
-                  </label>
-                  <input
-                    type="url"
-                    value={supaForm.caktoCheckoutUrl}
-                    onChange={(e) => setSupaForm({ ...supaForm, caktoCheckoutUrl: e.target.value })}
-                    placeholder="https://cakto.com.br/checkout/..."
                     className="w-full bg-white border border-neutral-300 focus:border-black rounded-xl px-3 py-2.5 text-black font-mono text-xs outline-none"
                   />
                 </div>

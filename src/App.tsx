@@ -34,7 +34,7 @@ export function App() {
     situation: string;
   } | null>(null);
 
-  // Trava de Acesso Rigorosa: sem compra ativa na Cakto, mantém na Landing Page. Com acesso ativo, entra no App.
+  // Controle de Acesso: se o usuário não estiver autenticado/ativo, direciona para a Landing Page.
   useEffect(() => {
     if (!isAccessActive) {
       setView('landing');
@@ -179,7 +179,7 @@ export function App() {
         />
       )}
 
-      {/* 🥋 Cakto Authentication & Webhook Modal */}
+      {/* 🥋 Modal de Autenticação e Gestão de Usuários (Admin) */}
       <AuthModal
         isOpen={isAuthModalOpen}
         onClose={closeAuthModal}

@@ -1,10 +1,12 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { authService, type UserAccessData } from '../services/authService';
+import { adminService } from '../services/adminService';
 
 interface AuthContextType {
   userAccess: UserAccessData | null;
   isAuthenticated: boolean;
   isAccessActive: boolean;
+  isAdmin: boolean;
   isLoading: boolean;
   isAuthModalOpen: boolean;
   openAuthModal: () => void;
@@ -86,6 +88,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const isAccessActive = userAccess?.status === 'active';
   const isAuthenticated = Boolean(userAccess && isAccessActive);
+  const isAdmin = Boolean(userAccess?.role === 'admin' || adminService.isAdmin(userAccess?.email));
 
   return (
     <AuthContext.Provider
@@ -93,6 +96,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         userAccess,
         isAuthenticated,
         isAccessActive,
+        isAdmin,
         isLoading,
         isAuthModalOpen,
         openAuthModal,

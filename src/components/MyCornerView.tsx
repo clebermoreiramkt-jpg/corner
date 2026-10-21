@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Heart, History, Settings, Flame, Award, Check, Clock, Key, ShieldCheck, Zap, LogOut } from 'lucide-react';
+import { Heart, History, Settings, Flame, Award, Check, Clock, Key, ShieldCheck, LogOut } from 'lucide-react';
 import type { Template, UserProfile, PostedStoryRecord } from '../types';
 import { storageService } from '../services/storageService';
 import { getTemplateById } from '../data/templates';
@@ -44,7 +44,7 @@ export const MyCornerView: React.FC<MyCornerViewProps> = ({
   favorites,
   onToggleFavorite,
 }) => {
-  const { userAccess, isAccessActive, openAuthModal, logout } = useAuth();
+  const { userAccess, isAccessActive, openAuthModal, logout, isAdmin } = useAuth();
   const [activeTab, setActiveTab] = useState<'favorites' | 'history' | 'profile'>('favorites');
   const [history, setHistory] = useState<PostedStoryRecord[]>(storageService.getHistory());
   const [apiKey, setApiKey] = useState(
@@ -368,16 +368,16 @@ export const MyCornerView: React.FC<MyCornerViewProps> = ({
             />
           </div>
 
-          {/* Cakto Webhook & Auth Section */}
+          {/* Conta & Gestão de Acesso */}
           <div className="pt-3 border-t border-neutral-200 space-y-2.5">
             <div className="flex items-center justify-between">
               <label className="text-xs font-mono uppercase text-black font-bold flex items-center gap-1.5">
-                <Zap className="w-3.5 h-3.5 text-black" />
-                Acesso & Webhook Cakto:
+                <ShieldCheck className="w-3.5 h-3.5 text-black" />
+                Sua Conta & Acesso:
               </label>
               {isAccessActive ? (
                 <span className="text-[11px] font-mono px-2 py-0.5 rounded-md bg-black text-white font-bold flex items-center gap-1">
-                  <ShieldCheck className="w-3 h-3 text-white" /> Ativo
+                  <ShieldCheck className="w-3 h-3 text-white" /> {isAdmin ? 'Admin Ativo' : 'Ativo'}
                 </span>
               ) : (
                 <span className="text-[11px] font-mono px-2 py-0.5 rounded-md bg-neutral-100 text-black font-bold border border-neutral-300">
@@ -392,7 +392,9 @@ export const MyCornerView: React.FC<MyCornerViewProps> = ({
                   {userAccess?.email ? `E-mail: ${userAccess.email}` : 'Nenhum e-mail conectado'}
                 </span>
                 <span className="text-[11px] text-neutral-500">
-                  {userAccess?.plan || 'Liberação automática via compra na Cakto'}
+                  {isAdmin 
+                    ? 'Administrador Master • Liberação manual de acessos habilitada' 
+                    : (userAccess?.plan || 'Acesso Liberado pela Administração')}
                 </span>
               </div>
 
@@ -402,7 +404,7 @@ export const MyCornerView: React.FC<MyCornerViewProps> = ({
                   onClick={openAuthModal}
                   className="px-3 py-1.5 rounded-xl bg-white hover:border-black border border-neutral-300 text-xs font-bold text-black transition-all cursor-pointer"
                 >
-                  Configurar Webhook & Login
+                  {isAdmin ? 'Painel Admin (Cadastrar)' : 'Gerenciar Acesso'}
                 </button>
                 {userAccess && (
                   <button

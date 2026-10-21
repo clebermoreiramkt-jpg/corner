@@ -16,7 +16,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   userProfile,
   onOpenProfile,
 }) => {
-  const { isAccessActive, openAuthModal, userAccess } = useAuth();
+  const { isAccessActive, openAuthModal, userAccess, isAdmin } = useAuth();
   return (
     <header className="sticky top-0 z-40 bg-white border-b border-neutral-200 px-4 py-3">
       <div className="max-w-4xl mx-auto flex items-center justify-between gap-3">
@@ -61,12 +61,24 @@ export const Navbar: React.FC<NavbarProps> = ({
             )}
           </button>
 
-          {/* Cakto Auth Button */}
-          {isAccessActive ? (
+          {/* Admin User Registration Button */}
+          {isAdmin && (
+            <button
+              onClick={openAuthModal}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-bold bg-black text-white hover:bg-neutral-800 transition-all cursor-pointer shadow-xs"
+              title="Painel Admin: Cadastrar e Gerenciar Usuários"
+            >
+              <ShieldCheck className="w-3.5 h-3.5 text-white" />
+              <span className="hidden sm:inline">Admin:</span> Cadastrar
+            </button>
+          )}
+
+          {/* Auth Button */}
+          {!isAdmin && (isAccessActive ? (
             <button
               onClick={openAuthModal}
               className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-bold bg-neutral-100 border border-neutral-300 text-black hover:border-black transition-all cursor-pointer"
-              title="Acesso Ativo via Cakto. Clique para gerenciar."
+              title="Sua conta está ativa. Clique para gerenciar."
             >
               <ShieldCheck className="w-3.5 h-3.5 text-black" />
               <span className="hidden sm:inline">Acesso</span> Ativo
@@ -75,12 +87,12 @@ export const Navbar: React.FC<NavbarProps> = ({
             <button
               onClick={openAuthModal}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-black text-white hover:bg-neutral-800 transition-all cursor-pointer"
-              title="Entrar com o e-mail da compra na Cakto"
+              title="Entrar com e-mail e senha"
             >
               <Key className="w-3.5 h-3.5 text-white" />
               <span>Entrar</span>
             </button>
-          )}
+          ))}
 
           {/* Gamification Streak Pill */}
           <button
