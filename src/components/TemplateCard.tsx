@@ -39,20 +39,20 @@ export const TemplateCard: React.FC<TemplateCardProps> = ({
   return (
     <div
       onClick={() => onSelect(template)}
-      className="group relative bg-white hover:bg-[#fafafa] border border-slate-200/90 hover:border-slate-400 rounded-2xl p-4 transition-all duration-150 cursor-pointer flex flex-col justify-between text-left shadow-2xs hover:shadow-sm"
+      className="group relative bg-white border border-neutral-200 hover:border-black rounded-2xl p-4 transition-all duration-150 cursor-pointer flex flex-col justify-between text-left"
     >
       <div>
         <div className="flex items-start justify-between gap-2 mb-2">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="font-mono text-xs font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-800 border border-slate-200">
+            <span className="font-mono text-xs font-black px-2 py-0.5 rounded-md bg-black text-white">
               #{template.numero}
             </span>
             {badge && (
-              <span className="text-xs px-1.5 py-0.5 rounded bg-amber-50 border border-amber-200 font-bold" title="Recomendação de ranking">
+              <span className="text-xs px-1.5 py-0.5 rounded bg-neutral-100 border border-neutral-300 text-black font-bold" title="Recomendação de ranking">
                 {badge}
               </span>
             )}
-            <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+            <span className="text-[11px] font-bold text-neutral-500 uppercase tracking-wider font-mono">
               {template.categoria.split('—')[1]?.trim() || template.categoria}
             </span>
           </div>
@@ -61,44 +61,44 @@ export const TemplateCard: React.FC<TemplateCardProps> = ({
             <button
               onClick={handleFavoriteClick}
               aria-label="Salvar nos favoritos"
-              className={`p-1.5 rounded-lg transition-colors ${
+              className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
                 isFavorite
-                  ? 'text-rose-600 bg-rose-50 border border-rose-200'
-                  : 'text-slate-400 hover:text-rose-500 hover:bg-slate-100'
+                  ? 'text-black bg-neutral-100 border border-neutral-300'
+                  : 'text-neutral-400 hover:text-black hover:bg-neutral-100'
               }`}
             >
-              <Heart className={`w-4 h-4 ${isFavorite ? 'fill-rose-500' : ''}`} />
+              <Heart className={`w-4 h-4 ${isFavorite ? 'fill-black text-black' : ''}`} />
             </button>
           </div>
         </div>
 
-        <h3 className="font-display text-lg text-slate-950 font-bold tracking-tight group-hover:text-emerald-700 transition-colors leading-tight mb-1.5">
+        <h3 className="font-display text-lg text-black font-black tracking-tight leading-tight mb-1.5">
           {template.nome}
         </h3>
 
         {highlightReason && (
-          <p className="text-xs text-emerald-800 font-medium bg-emerald-50 border border-emerald-200/80 px-2.5 py-1 rounded-lg mb-2">
+          <p className="text-xs text-black font-bold bg-neutral-100 border border-neutral-300 px-2.5 py-1 rounded-lg mb-2">
             {highlightReason}
           </p>
         )}
 
-        <p className="text-xs text-slate-600 line-clamp-2 mb-3 leading-relaxed">
+        <p className="text-xs text-neutral-600 line-clamp-2 mb-3 leading-relaxed">
           {template.objetivo}
         </p>
 
-        <div className="bg-[#f8f9fa] border border-slate-200/80 rounded-xl p-2.5 mb-3">
-          <span className="text-[10px] uppercase font-mono tracking-wider text-slate-400 font-bold block mb-1">
+        <div className="bg-neutral-50 border border-neutral-200 rounded-xl p-2.5 mb-3">
+          <span className="text-[10px] uppercase font-mono tracking-wider text-neutral-400 font-bold block mb-1">
             MODELO
           </span>
-          <p className="text-xs font-medium text-slate-800 line-clamp-2 italic leading-relaxed">
+          <p className="text-xs font-medium text-black line-clamp-2 italic leading-relaxed">
             "{template.modelo}"
           </p>
         </div>
       </div>
 
       {usedInfo.used && usedInfo.daysAgo <= 7 && (
-        <div className="flex items-center gap-1.5 text-[11px] text-amber-800 bg-amber-50 border border-amber-200 px-2 py-1 rounded-lg mb-3">
-          <AlertCircle className="w-3.5 h-3.5 shrink-0 text-amber-600" />
+        <div className="flex items-center gap-1.5 text-[11px] text-black bg-neutral-100 border border-neutral-300 px-2 py-1 rounded-lg mb-3">
+          <AlertCircle className="w-3.5 h-3.5 shrink-0 text-black" />
           <span>
             {usedInfo.daysAgo === 0
               ? 'Tu usou esse template hoje'
@@ -109,14 +109,14 @@ export const TemplateCard: React.FC<TemplateCardProps> = ({
         </div>
       )}
 
-      <div className="pt-2 border-t border-slate-150 flex items-center justify-between text-[11px] text-slate-500 gap-2">
+      <div className="pt-2 border-t border-neutral-200 flex items-center justify-between text-[11px] text-neutral-600 gap-2">
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="flex items-center gap-1 bg-slate-100 px-2 py-0.5 rounded border border-slate-200 text-slate-700">
-            <Video className="w-3 h-3 text-emerald-600" />
+          <span className="flex items-center gap-1 bg-white px-2 py-0.5 rounded border border-neutral-300 text-black font-mono text-[10px]">
+            <Video className="w-3 h-3 text-black" />
             <span className="truncate max-w-[90px]">{template.format}</span>
           </span>
-          <span className="flex items-center gap-1 bg-slate-100 px-2 py-0.5 rounded border border-slate-200 text-slate-700">
-            <Clock className="w-3 h-3 text-slate-500" />
+          <span className="flex items-center gap-1 bg-white px-2 py-0.5 rounded border border-neutral-300 text-black font-mono text-[10px]">
+            <Clock className="w-3 h-3 text-black" />
             <span>{template.duration}</span>
           </span>
         </div>
@@ -124,17 +124,17 @@ export const TemplateCard: React.FC<TemplateCardProps> = ({
         <div className="flex items-center gap-1">
           <button
             onClick={handleCopy}
-            className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 border border-slate-200 transition-all font-semibold text-slate-800"
+            className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white hover:bg-neutral-100 border border-neutral-300 hover:border-black transition-all font-bold text-black cursor-pointer"
             title="Copiar rápido"
           >
             {copied ? (
               <>
-                <Check className="w-3.5 h-3.5 text-emerald-700" />
-                <span className="text-emerald-700 font-bold">Copiado</span>
+                <Check className="w-3.5 h-3.5 text-black" />
+                <span className="text-black font-bold">Copiado</span>
               </>
             ) : (
               <>
-                <Copy className="w-3.5 h-3.5 text-slate-600" />
+                <Copy className="w-3.5 h-3.5 text-neutral-600" />
                 <span>Copiar</span>
               </>
             )}

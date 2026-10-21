@@ -9,8 +9,8 @@
 
   body {
     font-family: var(--font-sans);
-    background-color: #f4f5f7;
-    color: #09090b;
+    background-color: #ffffff;
+    color: #000000;
     overflow-x: hidden;
   }
 
@@ -21,23 +21,23 @@
   }
 }
 
-/* Custom light neutral scrollbar */
+/* Custom minimalist monochrome scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #f4f5f7;
+  background: #ffffff;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: #d4d4d4;
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: #737373;
 }
 
 /* Safe areas */

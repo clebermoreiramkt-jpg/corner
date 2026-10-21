@@ -83,7 +83,7 @@ export function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f4f5f7] text-[#09090b] flex flex-col justify-between selection:bg-slate-900 selection:text-white">
+    <div className="min-h-screen bg-white text-black flex flex-col justify-between selection:bg-black selection:text-white">
       {view === 'landing' || !isAccessActive ? (
         <LandingPageView 
           onEnterApp={handleEnterApp} 

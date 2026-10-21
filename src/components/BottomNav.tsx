@@ -42,7 +42,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200/90 px-2 py-1.5 safe-bottom shadow-lg">
+    <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-neutral-200 px-2 py-1.5 safe-bottom">
       <div className="max-w-md mx-auto grid grid-cols-4 gap-1">
         {tabs.map((tab) => {
           const Icon = tab.icon;
@@ -52,24 +52,24 @@ export const BottomNav: React.FC<BottomNavProps> = ({
             <button
               key={tab.id}
               onClick={() => onTabChange(tab.id)}
-              className={`relative flex flex-col items-center justify-center py-2 px-1 rounded-xl transition-all duration-150 select-none ${
+              className={`relative flex flex-col items-center justify-center py-2 px-1 rounded-xl transition-all select-none cursor-pointer ${
                 isActive
-                  ? 'text-slate-950 bg-slate-100 font-bold'
-                  : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50 font-medium'
+                  ? 'text-black bg-neutral-100 font-extrabold'
+                  : 'text-neutral-500 hover:text-black hover:bg-neutral-50 font-medium'
               }`}
             >
               <div className="relative">
                 <Icon
-                  className={`w-5 h-5 transition-transform duration-150 ${
-                    isActive ? 'scale-105 text-slate-950 stroke-[2.3]' : 'stroke-[1.8]'
+                  className={`w-5 h-5 transition-transform ${
+                    isActive ? 'scale-105 text-black stroke-[2.3]' : 'stroke-[1.8]'
                   }`}
                 />
                 {tab.badge && (
                   <span
                     className={`absolute -top-1.5 -right-3 text-[9px] font-mono px-1 rounded-full ${
                       isActive
-                        ? 'bg-slate-900 text-white font-extrabold'
-                        : 'bg-slate-200 text-slate-700 font-semibold border border-slate-300'
+                        ? 'bg-black text-white font-black'
+                        : 'bg-white text-black font-bold border border-neutral-300'
                     }`}
                   >
                     {tab.badge}
@@ -80,7 +80,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({
                 {tab.label}
               </span>
               {isActive && (
-                <span className="absolute bottom-1 w-4 h-0.5 rounded-full bg-slate-950" />
+                <span className="absolute bottom-1 w-4 h-0.5 rounded-full bg-black" />
               )}
             </button>
           );

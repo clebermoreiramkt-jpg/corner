@@ -87,41 +87,41 @@ export const Library: React.FC<LibraryProps> = ({
       <div className="flex items-center justify-between gap-3">
         <div>
           <div className="flex items-center gap-2">
-            <span className="font-mono text-xs uppercase px-2 py-0.5 rounded bg-slate-950 text-white">
+            <span className="font-mono text-xs uppercase px-2 py-0.5 rounded-md bg-black text-white font-bold">
               99 TEMPLATES COMPLETOS
             </span>
           </div>
-          <h1 className="font-display text-3xl sm:text-4xl font-black text-slate-950 tracking-tight leading-none pt-1">
+          <h1 className="font-display text-3xl sm:text-4xl font-black text-black tracking-tight leading-none pt-1">
             BIBLIOTECA DO CORNER
           </h1>
-          <p className="text-xs sm:text-sm text-slate-500 mt-1">
+          <p className="text-xs sm:text-sm text-neutral-600 mt-1">
             Nenhum Story do zero. Escolhe um modelo, ajusta e grava.
           </p>
         </div>
 
         <div className="text-right">
-          <span className="font-mono text-2xl font-black text-slate-950 block leading-none">
+          <span className="font-mono text-2xl font-black text-black block leading-none">
             {filteredTemplates.length}
           </span>
-          <span className="text-[10px] text-slate-400 uppercase font-mono tracking-wider">
+          <span className="text-[10px] text-neutral-400 uppercase font-mono tracking-wider font-bold">
             de 99 ideias
           </span>
         </div>
       </div>
 
       <div className="relative">
-        <Search className="w-5 h-5 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+        <Search className="w-5 h-5 absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-400" />
         <input
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="O que tu quer postar? (ex: armlock, aluno novo, cansaço, agenda aberta...)"
-          className="w-full bg-white border border-slate-300 focus:border-slate-950 rounded-2xl pl-11 pr-10 py-3.5 text-sm sm:text-base text-slate-950 placeholder:text-slate-400 outline-none transition-all shadow-2xs font-medium"
+          className="w-full bg-white border border-neutral-300 focus:border-black rounded-2xl pl-11 pr-10 py-3.5 text-sm sm:text-base text-black placeholder:text-neutral-400 outline-none transition-all font-medium"
         />
         {searchQuery && (
           <button
             onClick={() => setSearchQuery('')}
-            className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-700 cursor-pointer"
+            className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1 text-neutral-400 hover:text-black cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
@@ -129,7 +129,7 @@ export const Library: React.FC<LibraryProps> = ({
       </div>
 
       <div className="space-y-1.5">
-        <span className="text-[10px] font-mono uppercase tracking-widest text-slate-500 font-bold block">
+        <span className="text-[10px] font-mono uppercase tracking-widest text-neutral-500 font-bold block">
           FILTRAR POR TEMA:
         </span>
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1.5 scrollbar-none text-xs">
@@ -141,8 +141,8 @@ export const Library: React.FC<LibraryProps> = ({
                 onClick={() => setSelectedTag(tag)}
                 className={`px-3 py-1.5 rounded-xl font-bold whitespace-nowrap transition-all select-none cursor-pointer ${
                   isSelected
-                    ? 'bg-slate-950 text-white shadow-xs'
-                    : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 shadow-2xs'
+                    ? 'bg-black text-white'
+                    : 'bg-white hover:border-black text-black border border-neutral-300'
                 }`}
               >
                 {tag}
@@ -154,13 +154,13 @@ export const Library: React.FC<LibraryProps> = ({
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
         <div>
-          <label className="text-[10px] font-mono uppercase tracking-widest text-slate-500 font-bold block mb-1">
+          <label className="text-[10px] font-mono uppercase tracking-widest text-neutral-500 font-bold block mb-1">
             CATEGORIA:
           </label>
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
-            className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 font-medium outline-none focus:border-slate-950 shadow-2xs cursor-pointer"
+            className="w-full bg-white border border-neutral-300 rounded-xl px-3 py-2 text-xs text-black font-bold outline-none focus:border-black cursor-pointer"
           >
             <option value="all">Todas as 10 Categorias</option>
             {categories.map((c) => (
@@ -172,13 +172,13 @@ export const Library: React.FC<LibraryProps> = ({
         </div>
 
         <div>
-          <label className="text-[10px] font-mono uppercase tracking-widest text-slate-500 font-bold block mb-1">
+          <label className="text-[10px] font-mono uppercase tracking-widest text-neutral-500 font-bold block mb-1">
             FORMATO DO STORY:
           </label>
           <select
             value={selectedFormat}
             onChange={(e) => setSelectedFormat(e.target.value)}
-            className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 font-medium outline-none focus:border-slate-950 shadow-2xs cursor-pointer"
+            className="w-full bg-white border border-neutral-300 rounded-xl px-3 py-2 text-xs text-black font-bold outline-none focus:border-black cursor-pointer"
           >
             <option value="all">Todos os Formatos</option>
             <option value="falando para câmera">Falando para Câmera</option>
@@ -194,13 +194,13 @@ export const Library: React.FC<LibraryProps> = ({
       </div>
 
       {(searchQuery || selectedTag !== 'Todos' || selectedCategory !== 'all' || selectedFormat !== 'all') && (
-        <div className="flex items-center justify-between text-xs bg-slate-100 p-2.5 rounded-xl border border-slate-200">
-          <span className="text-slate-600 font-medium">
+        <div className="flex items-center justify-between text-xs bg-neutral-100 p-2.5 rounded-xl border border-neutral-300">
+          <span className="text-black font-medium">
             Filtros ativos ({filteredTemplates.length} resultados)
           </span>
           <button
             onClick={clearFilters}
-            className="text-slate-950 hover:underline font-bold cursor-pointer"
+            className="text-black hover:underline font-bold cursor-pointer"
           >
             Limpar todos os filtros
           </button>
@@ -220,17 +220,17 @@ export const Library: React.FC<LibraryProps> = ({
           ))}
         </div>
       ) : (
-        <div className="text-center py-16 bg-white rounded-3xl border border-slate-200 p-6 space-y-3 shadow-xs">
-          <BookOpen className="w-12 h-12 text-slate-400 mx-auto" />
-          <h3 className="font-display text-xl text-slate-950 font-black">
+        <div className="text-center py-16 bg-white rounded-3xl border border-neutral-200 p-6 space-y-3">
+          <BookOpen className="w-12 h-12 text-black mx-auto" />
+          <h3 className="font-display text-xl text-black font-black">
             Nenhum template encontrado
           </h3>
-          <p className="text-xs text-slate-500 max-w-sm mx-auto">
+          <p className="text-xs text-neutral-600 max-w-sm mx-auto">
             Não encontramos nenhum template com esse filtro. Tenta buscar por "aluno", "técnica", "medo", "venda" ou limpe a busca.
           </p>
           <button
             onClick={clearFilters}
-            className="px-4 py-2 rounded-xl bg-slate-950 text-white text-xs font-bold hover:bg-slate-800 transition-all cursor-pointer shadow-xs"
+            className="px-4 py-2 rounded-xl bg-black text-white text-xs font-bold hover:bg-neutral-800 transition-all cursor-pointer"
           >
             Limpar filtros e ver os 99
           </button>
