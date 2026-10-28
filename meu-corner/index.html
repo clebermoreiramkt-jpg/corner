@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Meu Corner — Capte alunos sem aparecer</title>
+    <meta name="description" content="Roteiros prontos para gravar só com mãos, luvas, tatame e texto na tela. Escolha um, copie a legenda e publique. Teu rosto é opcional." />
+    <meta name="theme-color" content="#0a0a0a" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Meu Corner" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&family=Caveat:wght@600;700&display=swap" />
+  </head>
+  <body>
+    <header class="top">
+      <div class="wrap bar">
+        <div class="brand" aria-label="Meu Corner">MEU CORNER</div>
+        <nav class="tabs" role="tablist" aria-label="Seções">
+          <button class="tab" role="tab" id="tab-mapa" data-view="mapa" aria-selected="true">Mapa</button>
+          <button class="tab" role="tab" id="tab-templates" data-view="templates" aria-selected="false">Pranchas</button>
+          <button class="tab" role="tab" id="tab-anuncios" data-view="anuncios" aria-selected="false">Anúncios</button>
+          <button class="tab" role="tab" id="tab-criar" data-view="criar" aria-selected="false">Criar anúncio</button>
+          <button class="tab" role="tab" id="tab-registro" data-view="registro" aria-selected="false">Registro</button>
+        </nav>
+      </div>
+    </header>
+
+    <main class="wrap">
+      <div class="hero" id="hero">
+        <div class="eyebrow">Para professores e academias de luta</div>
+        <h1>Meu<br><span class="ghost">Corner.</span></h1>
+        <p class="hand-sub">capte alunos sem aparecer.</p>
+        <p class="lede">Roteiros prontos para gravar só com <strong>mãos, luvas, tatame e texto na tela</strong>. Escolha um, copie a legenda e publique. Teu rosto é opcional.</p>
+        <div class="stats"><span><b>10</b> regiões do ringue</span><span><b>100</b> pranchas de conteúdo</span><span><b>20</b> anúncios prontos</span><span><b>0</b> vezes o teu rosto</span></div>
+      </div>
+
+      <section id="view-mapa" aria-labelledby="tab-mapa">
+        <div class="sec-head">
+          <div>
+            <h2>Mapa do ringue</h2>
+            <p>10 regiões, 10 pranchas em cada. O córner vermelho é onde começa: Preparação. Toque numa região para abrir as pranchas dela.</p>
+          </div>
+        </div>
+        <div class="mapwrap"><div id="ringmap"></div><ol class="regions" id="regions"></ol></div>
+        <div class="sec-head" style="margin-top:36px"><div><h2>Legenda</h2><p>Os símbolos de cada prancha.</p></div></div>
+        <div class="legend" id="legend"></div>
+        <div class="sec-head" style="margin-top:36px"><div><h2>O método</h2><p>Como os 20 anúncios mudam a ideia de quem ainda não treina.</p></div></div>
+        <ol class="steps8" id="steps8"></ol>
+      </section>
+
+      <section id="view-templates" aria-labelledby="tab-templates" hidden>
+        <div class="sec-head">
+          <div>
+            <h2>Pranchas</h2>
+            <p>Escolha a região ou o que você quer hoje. Abra uma prancha para ver o plano de gravação, escrever a tua versão e copiar a legenda.</p>
+          </div>
+          <div class="count" id="count"></div>
+        </div>
+        <div class="tools">
+          <input id="q" class="search" type="search" placeholder="Buscar: medo, vagas, iniciante, chute…" autocomplete="off">
+          <div class="chips" id="regchips" role="group" aria-label="Filtrar por região"></div>
+          <div class="chips" id="intents" role="group" aria-label="Filtrar por objetivo"></div>
+          <div class="chips" id="formats" role="group" aria-label="Filtrar por formato"></div>
+        </div>
+        <div class="list" id="list"></div>
+      </section>
+
+      <section id="view-anuncios" aria-labelledby="tab-anuncios" hidden>
+        <div class="sec-head">
+          <div>
+            <h2>Anúncios</h2>
+            <p>Cada anúncio muda uma ideia que o teu futuro aluno já tem. Ele termina o vídeo fazendo a pergunta que leva ao direct.</p>
+          </div>
+        </div>
+        <ol class="method" aria-label="Sequência do método">
+          <li class="key"><b>0</b><span>Hook</span></li>
+          <li><b>1</b><span>Comportamento</span></li>
+          <li><b>2</b><span>Percepção atual</span></li>
+          <li class="key"><b>3</b><span>Quebra</span></li>
+          <li><b>4</b><span>Nova percepção</span></li>
+          <li><b>5</b><span>Consciência</span></li>
+          <li><b>6</b><span>Decisão</span></li>
+          <li><b>7</b><span>Solução</span></li>
+        </ol>
+        <div class="ads">
+          <div class="ad-list" id="adList"></div>
+          <div class="detail" id="adDetail"></div>
+        </div>
+      </section>
+
+      <section id="view-registro" aria-labelledby="tab-registro" hidden>
+        <div class="sec-head">
+          <div>
+            <h2>Registro de posts</h2>
+            <p>Cada prancha marcada como usada entra aqui com a data. Anote quantas mensagens de quem ainda não treina cada post trouxe. Depois de um mês, você sabe quais regiões funcionam.</p>
+          </div>
+          <div class="count" id="logcount"></div>
+        </div>
+        <div class="logwrap"><table class="logt" id="logt"></table></div>
+      </section>
+
+      <section id="view-criar" aria-labelledby="tab-criar" hidden>
+        <div class="sec-head">
+          <div>
+            <h2>Criar anúncio</h2>
+            <p>Monte o teu próprio anúncio com o método. O vídeo ao lado se atualiza enquanto você escreve.</p>
+          </div>
+        </div>
+        <div class="mine">
+          <div class="lbl">A pergunta que abre tudo</div>
+          <p>O que o teu futuro aluno faz, pensa ou acredita hoje que, visto de outro ângulo, faria ele perceber que precisa treinar?</p>
+        </div>
+        <div class="builder">
+          <form class="form" id="form">
+            <div class="field">
+              <label for="f-base">Começar de um exemplo</label>
+              <select id="f-base"></select>
+            </div>
+            <div class="field">
+              <label>Tipo de tensão</label>
+              <div class="tens" id="f-tens" role="group" aria-label="Tipo de tensão"></div>
+            </div>
+            <div class="hookbox">
+              <div class="field">
+                <label><b>0</b>Hook · ângulo</label>
+                <small>Cada anúncio abre por um ângulo diferente, para teu perfil não começar sempre do mesmo jeito.</small>
+                <div class="tens" id="f-ang" role="group" aria-label="Ângulo do hook"></div>
+                <p class="anghint" id="ang-hint"></p>
+              </div>
+              <div class="field">
+                <label for="f-h1">Linha 1 · abertura</label>
+                <small>Algo inesperado, específico ou forte. Nunca pergunta. Número em dígito: 3, não três.</small>
+                <input id="f-h1" type="text" maxlength="60">
+                <div class="meta"><span id="h1-warn"></span><span id="h1-c">0/40</span></div>
+              </div>
+              <div class="field">
+                <label for="f-h2">Linha 2 · contraste</label>
+                <small>Contradiz, reenquadra ou corta a abertura. Pelo menos uma das linhas em primeira pessoa.</small>
+                <input id="f-h2" type="text" maxlength="60">
+                <div class="meta"><span id="h2-warn"></span><span id="h2-c">0/40</span></div>
+              </div>
+            </div>
+            <div class="field">
+              <label for="f-gancho"><b>1</b>Comportamento</label>
+              <small>Chame o comportamento pelo nome. Pode ser pergunta. Ele precisa se reconhecer em 2 segundos.</small>
+              <input id="f-gancho" type="text">
+            </div>
+            <div class="field">
+              <label for="f-atual"><b>2</b>O que ele acredita hoje</label>
+              <small>Escreva na voz dele. Não vai na tela, serve para você mirar.</small>
+              <input id="f-atual" type="text">
+            </div>
+            <div class="field">
+              <label for="f-quebra"><b>3</b>A quebra</label>
+              <small>Uma situação ou pergunta que derruba essa interpretação.</small>
+              <textarea id="f-quebra" rows="2"></textarea>
+            </div>
+            <div class="field">
+              <label for="f-nova"><b>4</b>A nova percepção</label>
+              <textarea id="f-nova" rows="2"></textarea>
+            </div>
+            <div class="field">
+              <label for="f-perg"><b>5</b>A pergunta que ele vai se fazer</label>
+              <small>Quando ele formula essa pergunta, a venda já começou.</small>
+              <input id="f-perg" type="text">
+            </div>
+            <div class="field">
+              <label for="f-cta"><b>6–7</b>Oferta e chamada</label>
+              <input id="f-cta" type="text">
+            </div>
+          </form>
+          <div class="out">
+            <div class="reel-wrap" id="builderReel"></div>
+            <div class="actions">
+              <button class="btn" type="button" id="b-copy-script">Copiar roteiro</button>
+              <button class="btn ghost" type="button" id="b-copy-leg">Copiar legenda</button>
+            </div>
+            <div>
+              <div class="lbl">Roteiro na tela</div>
+              <ol class="script" id="b-script"></ol>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <footer>
+        <span>Meu Corner · atlas de conteúdo para professores de luta</span>
+        <span>Favoritos e usados ficam salvos neste aparelho.</span>
+      </footer>
+    </main>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
